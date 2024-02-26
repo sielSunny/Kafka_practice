@@ -1,9 +1,8 @@
 package com.bharath.kafka;
 
-import org.apache.kafka.clients.producer.Callback;
+import com.bharath.kafka.data.Tracking;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 
 import java.util.Properties;
 import java.util.Random;
@@ -15,24 +14,26 @@ public class ProducerTrack {
 
         props.setProperty("bootstrap.servers", "localhost:9092");
         props.setProperty("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.setProperty("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.setProperty("value.serializer", "com.bharath.kafka.data.TrackSerializer");
 
-        KafkaProducer<String, String> producer = new KafkaProducer<>(props);
+        KafkaProducer<String, Tracking> producer = new KafkaProducer<>(props);
 
         Random random = new Random();
         for(int i = 1; i<=10; i++){
-            String id = "id" + i;
+            String id = "id" + i*random.nextInt();
             double latitude = random.nextDouble()*90;
             double longitude = random.nextDouble()*180;
-            String message = id + "," + latitude + "," + longitude;
+           Tracking tracking = new Tracking();
+           tracking.setLatitude(latitude);
+           tracking.setLongitude(longitude);
 
-            ProducerRecord<String, String> record = new ProducerRecord<>("TrackTracking", id, message);
+            ProducerRecord<String, Tracking> record = new ProducerRecord<>("TrackTracking2", id, tracking);
 
             producer.send(record, (metadata, exception) -> {
                 if(exception!=null){
                     exception.printStackTrace();
                 } else {
-                    System.out.println("Sent record:" + id + ", Partiion:" + metadata.partition() +", Offset: " + metadata.offset());
+                    System.out.println("Sent record:" + id + ", Partition:" + metadata.partition() +", Offset: " + metadata.offset());
                 }
             });
         }
